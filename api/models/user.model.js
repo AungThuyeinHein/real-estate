@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const userSchema = new mongoose.Schema(
   {
     username: {
@@ -17,7 +16,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timeseries: true }
+  { timestamps: true } // Use timestamps instead of timeseries
 );
 
 const User = mongoose.model("User", userSchema);
