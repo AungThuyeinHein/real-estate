@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    avatar: {
+      type: String,
+      default:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUoC5cmzyqEonX_ZR00BU9tO_NJt0tekZ9lTs36oRyjg&s",
+    },
   },
   { timestamps: true } // Use timestamps instead of timeseries
 );
