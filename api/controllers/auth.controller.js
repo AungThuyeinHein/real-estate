@@ -50,8 +50,8 @@ export const signin = async (req, res, next) => {
 
 export const google = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
-    if (user) {
+    const validUser = await User.findOne({ email: req.body.email });
+    if (validUser) {
       const token = jwt.sign(
         {
           id: validUser._id,
