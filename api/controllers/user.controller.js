@@ -30,7 +30,7 @@ export const updateUser = async (req, res, next) => {
 
     res.status(200).json({
       status: 200,
-      rest,
+      data: rest,
     });
   } catch (error) {
     next(error);
