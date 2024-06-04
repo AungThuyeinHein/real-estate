@@ -7,13 +7,12 @@ import { useNavigate } from "react-router-dom";
 export default function OAuth() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const handleGoogleClick = async () => {
     try {
       const provider = new GoogleAuthProvider();
       const auth = getAuth(app);
-
       const result = await signInWithPopup(auth, provider);
-      console.log(result);
 
       const res = await fetch("/api/auth/google", {
         method: "POST",
@@ -30,16 +29,17 @@ export default function OAuth() {
       dispatch(signInSuccess(data));
       navigate("/");
     } catch (error) {
-      console.log("could not sign in wth google", error);
+      console.log("Could not sign in with Google", error);
     }
   };
+
   return (
     <button
       onClick={handleGoogleClick}
       type="button"
-      className="bg-blue-600 text-white p-3 rounded-lg uppercase hover:opacity95"
+      className="bg-blue-600 text-white p-3 rounded-lg uppercase hover:opacity-95"
     >
-      Continute with Google
+      Continue with Google
     </button>
   );
 }

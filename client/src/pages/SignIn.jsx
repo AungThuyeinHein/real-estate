@@ -11,7 +11,7 @@ import OAuth from "../components/OAuth.jsx";
 export default function SignIn() {
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
-  const dispatch = useDispatch(); // Add this line to get the dispatch function
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -45,7 +45,7 @@ export default function SignIn() {
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
-      <form onSubmit={handleSubmit} action="" className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="text"
           placeholder="email"
