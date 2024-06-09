@@ -144,7 +144,7 @@ export default function Profile() {
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
-      const res = await fetch(`/api/user/listing/${currentUser._id}`);
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
 
       const data = await res.json();
       if (data.success === false) {
@@ -288,7 +288,7 @@ export default function Profile() {
               </Link>
               <Link
                 className="text-slate-700 font-semibold hover:underline truncate"
-                to={`/listing/${currentUser._id}`}
+                to={`/listing/${listing._id}`}
               >
                 <p>{listing.name}</p>
               </Link>
