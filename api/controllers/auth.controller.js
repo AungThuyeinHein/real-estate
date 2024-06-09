@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import { errorHandler } from "../utils/error.js";
 import jwt from "jsonwebtoken";
+import { revokeGoogleToken } from "../utils/authServices.js";
 
 export const signup = async (req, res, next) => {
   const { username, email, password } = req.body;
@@ -71,11 +72,22 @@ export const google = async (req, res, next) => {
 
 export const signout = async (req, res, next) => {
   try {
+    const token = req.cookies.access_token;
+
+    // Revoke Google OAuth token if necessary
+    await revokeGoogleToken(token);
+
+    // Clear the access token cookie
     res
-      .clearCookie("access_token")
+      .clearCookie("access_token", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+      })
       .status(200)
-      .json({ message: "User Successfully Sign Out" });
+      .json({ success: true, message: "User Successfully Signed Out" });
   } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
     next(error);
   }
 };

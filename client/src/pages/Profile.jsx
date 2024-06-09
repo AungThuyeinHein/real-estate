@@ -112,15 +112,31 @@ export default function Profile() {
 
   const handleSignout = async () => {
     try {
+      console.log("Attempting signout...");
       dispatch(signoutUserStart());
-      const res = await fetch("/api/auth/signout");
+
+      const res = await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include", // Include credentials to ensure cookies are sent
+      });
+
+      console.log("Signout request response:", res);
+
       const data = await res.json();
-      if (data.success === false) {
-        dispatch(signoutUserFailure(data.message));
+
+      console.log("Signout response data:", data);
+
+      if (!res.ok || data.success === false) {
+        dispatch(signoutUserFailure(data.message || "Sign out failed"));
         return;
       }
-      dispatch(signoutUserSuccess(data));
+
+      // Optionally clear any local state or tokens
+      localStorage.removeItem("accessToken"); // or any other token storage method
+
+      dispatch(signoutUserSuccess(data.message));
     } catch (error) {
+      console.error("Error during signout:", error);
       dispatch(signoutUserFailure(error.message));
     }
   };
