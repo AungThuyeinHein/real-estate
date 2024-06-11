@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ListingItems from "../components/ListingItems";
 
 export default function Search() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebardata, setSidebardata] = useState({
     searchTerm: "",
     type: "all",
@@ -15,8 +16,8 @@ export default function Search() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [listings, setlistings] = useState([]);
-  console.log(listings);
+  const [listings, setListings] = useState([]);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -40,68 +41,72 @@ export default function Search() {
       setSidebardata({
         searchTerm: searchTermFromUrl || "",
         type: typeFromUrl || "all",
-        parking: parkingFromUrl === "true" ? true : false,
-        furnished: furnishedFromUrl === "true" ? true : false,
-        offer: offerFromUrl === "true" ? true : false,
+        parking: parkingFromUrl === "true",
+        furnished: furnishedFromUrl === "true",
+        offer: offerFromUrl === "true",
         sort: sortFromUrl || "created_at",
         order: orderFromUrl || "desc",
       });
     }
+
     const fetchListings = async () => {
       setLoading(true);
+      setShowMore(false);
       const searchQuery = urlParams.toString();
       const res = await fetch(`/api/listing?${searchQuery}`);
       const data = await res.json();
-      setlistings(data);
+      setListings(data);
+      if (data.length > 8) {
+        setShowMore(true);
+      } else {
+        setShowMore(false);
+      }
+      setListings(data);
       setLoading(false);
     };
+
     fetchListings();
   }, [location.search]);
 
   const handleChange = (e) => {
-    if (
-      e.target.id === "all" ||
-      e.target.id === "rent" ||
-      e.target.id === "sale"
-    ) {
-      setSidebardata({ ...sidebardata, type: e.target.id });
-    }
-    if (e.target.id === "searchTerm") {
-      setSidebardata({ ...sidebardata, searchTerm: e.target.value });
-    }
-    if (
-      e.target.id === "parking" ||
-      e.target.id === "furnished" ||
-      e.target.id === "offer"
-    ) {
-      setSidebardata({
-        ...sidebardata,
-        [e.target.id]:
-          e.target.checked || e.target.checked === "true" ? true : false,
-      });
-    }
-
-    if (e.target.id === "sort_order") {
-      const sort = e.target.value.split("_")[0] || "created_at";
-      const order = e.target.value.split("_")[1] || "desc";
-
-      setSidebardata({ ...sidebardata, sort, order });
+    const { id, value, checked } = e.target;
+    if (id === "all" || id === "rent" || id === "sale") {
+      setSidebardata((prevData) => ({ ...prevData, type: id }));
+    } else if (id === "searchTerm") {
+      setSidebardata((prevData) => ({ ...prevData, searchTerm: value }));
+    } else if (id === "parking" || id === "furnished" || id === "offer") {
+      setSidebardata((prevData) => ({ ...prevData, [id]: checked }));
+    } else if (id === "sort_order") {
+      const [sort, order] = value.split("_");
+      setSidebardata((prevData) => ({ ...prevData, sort, order }));
     }
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const urlParams = new URLSearchParams();
-    urlParams.set("searchTerm", sidebardata.searchTerm);
-    urlParams.set("type", sidebardata.type);
-    urlParams.set("parking", sidebardata.parking);
-    urlParams.set("furnished", sidebardata.furnished);
-    urlParams.set("offer", sidebardata.offer);
-    urlParams.set("sort", sidebardata.sort);
-    urlParams.set("order", sidebardata.order);
-
-    const searchQuery = urlParams.toString();
-    navigate(`/search?${searchQuery}`);
+    Object.keys(sidebardata).forEach((key) => {
+      urlParams.set(key, sidebardata[key]);
+    });
+    navigate(`/search?${urlParams.toString()}`);
   };
+
+  const onShowMoreClick = async () => {
+    const startIndex = listings.length;
+    const urlParams = new URLSearchParams(location.search);
+    urlParams.set("startIndex", startIndex);
+    try {
+      const res = await fetch(`/api/listing?${urlParams.toString()}`);
+      const data = await res.json();
+      if (data.length <= 9) {
+        setShowMore(false);
+      }
+      setListings((prevListings) => [...prevListings, ...data]);
+    } catch (error) {
+      console.error("Failed to fetch more listings:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row">
       <div className="p-7 border-b-2 md:border-r-2 md:min-h-screen">
@@ -121,7 +126,7 @@ export default function Search() {
           </div>
           <div className="flex gap-2 flex-wrap items-center">
             <label className="font-semibold">Type:</label>
-            <div className="flex gap-2 ">
+            <div className="flex gap-2">
               <input
                 type="checkbox"
                 id="all"
@@ -131,7 +136,7 @@ export default function Search() {
               />
               <span>Rent & Sale</span>
             </div>
-            <div className="flex gap-2 ">
+            <div className="flex gap-2">
               <input
                 type="checkbox"
                 id="rent"
@@ -141,7 +146,7 @@ export default function Search() {
               />
               <span>Rent</span>
             </div>
-            <div className="flex gap-2 ">
+            <div className="flex gap-2">
               <input
                 type="checkbox"
                 id="sale"
@@ -151,7 +156,7 @@ export default function Search() {
               />
               <span>Sale</span>
             </div>
-            <div className="flex gap-2 ">
+            <div className="flex gap-2">
               <input
                 type="checkbox"
                 id="offer"
@@ -164,7 +169,7 @@ export default function Search() {
           </div>
           <div className="flex gap-2 flex-wrap items-center">
             <label className="font-semibold">Amenities:</label>
-            <div className="flex gap-2 ">
+            <div className="flex gap-2">
               <input
                 type="checkbox"
                 id="parking"
@@ -174,7 +179,7 @@ export default function Search() {
               />
               <span>Parking</span>
             </div>
-            <div className="flex gap-2 ">
+            <div className="flex gap-2">
               <input
                 type="checkbox"
                 id="furnished"
@@ -189,17 +194,17 @@ export default function Search() {
             <label className="font-semibold">Sort:</label>
             <select
               onChange={handleChange}
-              defaultValue={"created_at_desc"}
+              defaultValue="created_at_desc"
               id="sort_order"
               className="border rounded-lg p-3"
             >
               <option value="regularPrice_desc">Price high to low</option>
               <option value="regularPrice_asc">Price low to high</option>
-              <option value="createdAt_desc">Latest</option>
-              <option value="createdAt_asc">Oldest</option>
+              <option value="created_at_desc">Latest</option>
+              <option value="created_at_asc">Oldest</option>
             </select>
           </div>
-          <button className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 ">
+          <button className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95">
             Search
           </button>
         </form>
@@ -208,7 +213,7 @@ export default function Search() {
         <h1 className="text-3xl font-semibold border-b p-3 text-slate-700 mt-5">
           Listing Results
         </h1>
-        <div className="p-7 flex felx-col gap-4">
+        <div className="p-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {!loading && listings.length === 0 && (
             <p className="text-xl text-slate-700">No Listing Found</p>
           )}
@@ -223,6 +228,14 @@ export default function Search() {
               <ListingItems key={listing._id} listing={listing} />
             ))}
         </div>
+        {showMore && (
+          <button
+            onClick={onShowMoreClick}
+            className="text-green-700 hover:underline p-7 text-center w-full"
+          >
+            Show More...
+          </button>
+        )}
       </div>
     </div>
   );
