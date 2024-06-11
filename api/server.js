@@ -5,6 +5,7 @@ import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import listingRoute from "./routes/listing.route.js";
 import cookieParser from "cookie-parser";
+import path from "path";
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -19,9 +20,16 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+
+const __dirname = path.resolve();
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/listing", listingRoute);
+
+app.use(express.static(path.join(__dirname, "/client/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
+});
 app.listen(3000, () => {
   console.log(`Server is running at port : ${3000}`);
 });
